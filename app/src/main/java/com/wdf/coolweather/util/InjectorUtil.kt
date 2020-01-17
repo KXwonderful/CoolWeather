@@ -4,7 +4,6 @@ import com.wdf.coolweather.data.PlaceRepository
 import com.wdf.coolweather.data.WeatherRepository
 import com.wdf.coolweather.data.db.CoolWeatherDatabase
 import com.wdf.coolweather.data.network.CoolWeatherNetwork
-import com.wdf.coolweather.ui.MainModelFactory
 import com.wdf.coolweather.ui.area.ChooseAreaModelFactory
 import com.wdf.coolweather.ui.weather.WeatherModelFactory
 
@@ -28,6 +27,4 @@ object InjectorUtil {
     fun getChooseAreaModelFactory() = ChooseAreaModelFactory(getPlaceRepository())
 
     fun getWeatherModelFactory() = WeatherModelFactory(getWeatherRepository())
-
-    fun getMainModelFactory() = MainModelFactory(getWeatherRepository())
 }

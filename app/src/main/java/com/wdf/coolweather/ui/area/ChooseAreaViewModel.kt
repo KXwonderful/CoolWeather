@@ -6,7 +6,7 @@ import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wdf.coolweather.MyApplication
+import com.wdf.coolweather.common.app.MyApplication
 import com.wdf.coolweather.data.model.place.City
 import com.wdf.coolweather.data.model.place.County
 import com.wdf.coolweather.data.model.place.Province

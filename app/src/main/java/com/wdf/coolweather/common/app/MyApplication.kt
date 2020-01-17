@@ -1,4 +1,4 @@
-package com.wdf.coolweather
+package com.wdf.coolweather.common.app
 
 import android.app.Application
 import android.content.Context

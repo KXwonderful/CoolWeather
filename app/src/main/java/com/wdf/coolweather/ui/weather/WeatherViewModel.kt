@@ -1,10 +1,9 @@
 package com.wdf.coolweather.ui.weather
 
-import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wdf.coolweather.MyApplication
+import com.wdf.coolweather.common.util.ToastUtils
 import com.wdf.coolweather.data.WeatherRepository
 import com.wdf.coolweather.data.model.weather.Weather
 import kotlinx.coroutines.launch
@@ -31,7 +30,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
             weather.value = repository.getWeather(weatherId)
             weatherInitialized.value = true
         }, {
-            Toast.makeText(MyApplication.context, it.message, Toast.LENGTH_SHORT).show()
+            ToastUtils.show(it.message)
         })
         getBingPic(false)
     }
@@ -43,7 +42,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
             refreshing.value = false
             weatherInitialized.value = true
         }, {
-            Toast.makeText(MyApplication.context, it.message, Toast.LENGTH_SHORT).show()
+            ToastUtils.show(it.message)
         })
         getBingPic(true)
     }
@@ -60,7 +59,7 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
         launch({
             bingPicUrl.value = if (refresh) repository.refreshBingPic() else repository.getBingPic()
         }, {
-            Toast.makeText(MyApplication.context, it.message, Toast.LENGTH_SHORT).show()
+            ToastUtils.show(it.message)
         })
     }
 

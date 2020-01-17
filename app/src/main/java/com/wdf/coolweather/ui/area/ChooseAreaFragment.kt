@@ -1,58 +1,29 @@
 package com.wdf.coolweather.ui.area
 
-import android.app.ProgressDialog
-import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.wdf.coolweather.R
+import com.wdf.coolweather.common.base.fragment.BaseBackFragment
 import com.wdf.coolweather.databinding.ChooseAreaBinding
-import com.wdf.coolweather.databinding.ChooseAreaBindingImpl
-import com.wdf.coolweather.ui.MainActivity
-import com.wdf.coolweather.ui.weather.WeatherActivity
+import com.wdf.coolweather.event.RefreshWeatherEvent
+import com.wdf.coolweather.ui.weather.WeatherFragment
 import com.wdf.coolweather.util.InjectorUtil
-import kotlinx.android.synthetic.main.activity_weather.*
 import kotlinx.android.synthetic.main.choose_area.*
+import kotlinx.android.synthetic.main.fragment_weather.*
+import org.greenrobot.eventbus.EventBus
 
 /**
  * Function:
  * Author: wonderful on 2020/1/14 9:19
  */
 
-class ChooseAreaFragment : Fragment() {
+class ChooseAreaFragment(var isDrawerLayout: Boolean = true) :
+    BaseBackFragment<ChooseAreaViewModel, ChooseAreaBinding>() {
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(
-            this,
-            InjectorUtil.getChooseAreaModelFactory()
-        ).get(ChooseAreaViewModel::class.java)
-    }
-    private var progressDialog: ProgressDialog? = null
     private lateinit var adapter: ArrayAdapter<String>
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.choose_area, container, false)
-        val binding = DataBindingUtil.bind<ChooseAreaBinding>(view)
-        binding?.viewModel = viewModel
-        return view
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        adapter = ChooseAreaAdapter(context!!, R.layout.simple_item, viewModel.dataList)
-        listView.adapter = adapter
-        observe()
-    }
 
     private fun observe() {
         viewModel.currentLevel.observe(this, Observer { level ->
@@ -75,26 +46,26 @@ class ChooseAreaFragment : Fragment() {
         viewModel.dataChanged.observe(this, Observer {
             adapter.notifyDataSetChanged()
             listView.setSelection(0)
-            closeProgressDialog()
+            dismissProgressDialog()
         })
 
         viewModel.isLoading.observe(this, Observer { isLoading ->
             if (isLoading) showProgressDialog()
-            else closeProgressDialog()
+            else dismissProgressDialog()
         })
 
         viewModel.areaSelected.observe(this, Observer { selected ->
             if (selected && viewModel.selectedCounty != null) {
-                if (activity is MainActivity) {
-                    val intent = Intent(activity, WeatherActivity::class.java)
-                    intent.putExtra("weather_id", viewModel.selectedCounty!!.weatherId)
-                    startActivity(intent)
-                    activity?.finish()
+                if (isDrawerLayout) {
+                    val weatherFragment = parentFragment as WeatherFragment
+                    weatherFragment.drawerLayout.closeDrawers()
+                    weatherFragment.viewModel.weatherId = viewModel.selectedCounty!!.weatherId
+                    weatherFragment.viewModel.refreshWeather()
                 } else {
-                    val weatherActivity = activity as WeatherActivity
-                    weatherActivity.drawerLayout.closeDrawers()
-                    weatherActivity.viewModel.weatherId = viewModel.selectedCounty!!.weatherId
-                    weatherActivity.viewModel.refreshWeather()
+                    // refresh weather
+                    EventBus.getDefault()
+                        .post(RefreshWeatherEvent(viewModel.selectedCounty!!.weatherId))
+                    pop()
                 }
                 viewModel.areaSelected.value = false
             }
@@ -105,22 +76,23 @@ class ChooseAreaFragment : Fragment() {
         }
     }
 
-    private fun showProgressDialog() {
-        if (progressDialog == null) {
-            progressDialog = ProgressDialog(activity)
-            progressDialog?.setMessage("正在加载...")
-            progressDialog?.setCanceledOnTouchOutside(false)
-        }
-        progressDialog?.show()
-    }
-
-    private fun closeProgressDialog() {
-        progressDialog?.dismiss()
-    }
-
     companion object {
         const val LEVEL_PROVINCE = 0
         const val LEVEL_CITY = 1
         const val LEVEL_COUNTY = 2
+    }
+
+    override fun getLayoutId(): Int = R.layout.choose_area
+
+    override fun getModelFactory(): ViewModelProvider.NewInstanceFactory =
+        InjectorUtil.getChooseAreaModelFactory()
+
+    override fun getViewModel(): Class<ChooseAreaViewModel> = ChooseAreaViewModel::class.java
+
+    override fun bindView(bundle: Bundle?) {
+        binding.viewModel = viewModel
+        adapter = ChooseAreaAdapter(context!!, R.layout.simple_item, viewModel.dataList)
+        listView.adapter = adapter
+        observe()
     }
 }

@@ -1,29 +1,36 @@
 package com.wdf.coolweather.ui
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProviders
 import com.wdf.coolweather.R
-import com.wdf.coolweather.ui.area.ChooseAreaFragment
-import com.wdf.coolweather.ui.weather.WeatherActivity
-import com.wdf.coolweather.util.InjectorUtil
+import com.wdf.coolweather.common.base.activity.SimpleActivity
+import com.wdf.coolweather.event.ToFragmentEvent
+import com.wdf.coolweather.ui.weather.WeatherFragment
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : SimpleActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    override fun getLayoutId(): Int = R.layout.activity_main
 
-        val viewModel = ViewModelProviders.of(this, InjectorUtil.getMainModelFactory())
-            .get(MainViewModel::class.java)
-        if (viewModel.isWeatherCached()) {
-            val intent = Intent(this, WeatherActivity::class.java)
-            startActivity(intent)
-            finish()
-        } else {
-            supportFragmentManager.beginTransaction().replace(R.id.container, ChooseAreaFragment())
-                .commit()
+    override fun initView(bundle: Bundle?) {
+
+        EventBus.getDefault().register(this)
+
+        if (bundle == null) {
+            loadRootFragment(R.id.container, WeatherFragment())
         }
+    }
+
+    /**
+     * start other brother Fragment
+     */
+    @Subscribe
+    fun switchFragment(event: ToFragmentEvent) {
+        start(event.targetFragment)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        EventBus.getDefault().unregister(this)
     }
 }

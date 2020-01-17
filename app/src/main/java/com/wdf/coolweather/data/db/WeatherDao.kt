@@ -2,7 +2,7 @@ package com.wdf.coolweather.data.db
 
 import com.google.gson.Gson
 import com.wdf.coolweather.data.model.weather.Weather
-import com.wdf.coolweather.util.PrefUtils
+import com.wdf.coolweather.common.util.PrefUtils
 
 /**
  * Function:
